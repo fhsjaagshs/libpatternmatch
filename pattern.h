@@ -6,8 +6,6 @@
 #include <list>
 #include <map>
 
-
-
 namespace LibPM {
   using namespace std;
   

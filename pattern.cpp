@@ -54,27 +54,35 @@ namespace LibPM {
   }
 
   list<string> pattern::match_splats(string comp) {
-    list<string> lst;
+    list<string> splats;
     char *pattern = (char *)_pattern.c_str();
     char *str = (char *)comp.c_str();
     int index_delta = 0;
-  
-    // for (size_t i = 0; i < _splat_indeces.size(); i++) {
-  //     unsigned idx = _splat_indeces[i]+index_delta;
-  //     char *tmppattern = pattern+idx+1;
-  //
-  //
-  //
-  //     char *strtemp = str;
-  //
-  //     // advance to start of last occurance of the succ string in str
-  //     while (strncmp((char *)succ.c_str(), strtemp, succ.length()) != 0) strtemp++;
-  //
-  //
-  //     str
-  //   }
-  
-    return lst;
+
+    cout << "count: " << _splat_indeces.size() << endl;
+
+    for (list<unsigned>::iterator i = _splat_indeces.begin(); i != _splat_indeces.end(); ++i) {
+      cout << "HERE" << endl;
+      unsigned idx = *i+index_delta;
+      char *tmpptrn = pattern+idx;
+      _advance_to_succ(tmpptrn);
+      char *succ = tmpptrn;
+      unsigned succlen = _advance_to_wildcard(tmpptrn);
+      char *tmpstr = str+idx;
+      
+      while (*(tmpstr+1) != '\0' && strncmp(succ, tmpstr, succlen) != 0) tmpstr++;
+      
+      unsigned splat_len = tmpstr-(str+idx);
+
+      char *buf = (char *)malloc(sizeof(char)*splat_len);
+      strncpy(buf, (str+idx), splat_len);
+      string value(buf);
+      splats.push_back(value);
+      free(buf);
+      index_delta += value.length();
+    }
+    
+    return splats;
   }
 
   //
@@ -150,9 +158,15 @@ namespace LibPM {
 
   list<unsigned> pattern::_get_splat_indeces(char *str, char *ptr) {
     if (!ptr) ptr = str;
-    if (str == ptr) return list<unsigned>();
+
+    char *tmp = ptr;
+    if (str == ptr) {
+      cout << "returning empty" << endl;
+      return list<unsigned>();
+    }
   
-    while (*ptr != '*') ptr++; ptr++;
+    _advance_to_wildcard(ptr, '*');
+    cout << "\t(Splat IDX) Pointer: " << ptr << endl;
   
     list<unsigned> recursive = _get_splat_indeces(str, ptr+1);
     recursive.push_front((unsigned)(ptr-str));

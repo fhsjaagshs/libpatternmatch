@@ -10,7 +10,7 @@ pattern.o: pattern.cpp
 	g++ -fPIC -g -c pattern.cpp
 
 tester.o: tester.cpp
-	g++ -c tester.cpp
+	g++ -Wc++11-compat-deprecated-writable-strings -c tester.cpp
 
 tester: pattern.o tester.o
 	g++ pattern.o tester.o -o tester
@@ -19,4 +19,4 @@ test: tester
 	./tester
 
 clean:
-	rm -rf *.o *.so *.dylib main
+	rm -rf *.o *.so *.dylib tester

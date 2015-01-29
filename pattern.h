@@ -35,7 +35,7 @@ namespace LibPM {
     void create(string ptrn);
 
     // advance to first char of wildcard sequence
-    void _advance_to_wildcard(char *&ptr, char c = '\0');
+    unsigned _advance_to_wildcard(char *&ptr, char c = '\0');
   
     // advance ptr to the first char after a wildcard sequence
     unsigned _advance_to_succ(char *&ptr);

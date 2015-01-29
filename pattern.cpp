@@ -87,12 +87,14 @@ namespace LibPM {
     _pattern = ptrn;
   }
 
-  void pattern::_advance_to_wildcard(char *&ptr, char c) {
+  unsigned pattern::_advance_to_wildcard(char *&ptr, char c) {
+    char *start = ptr;
     if (c == '\0') {
       while (*ptr != '*' && *ptr != '<' && *(ptr+1) != '\0') ptr++;
     } else {
       while (*ptr != c && *(ptr+1) != '\0') ptr++;
     }
+    return (unsigned)(ptr-start);
   }
 
   unsigned pattern::_advance_to_succ(char *&ptr) {
@@ -110,21 +112,16 @@ namespace LibPM {
   
     char *tmp = pattern;
     if (_advance_to_succ(tmp) != 0) { // if there are non-pattern characters after pattern
-      _advance_to_succ(pattern);
+      pattern = tmp;
       char *succ = pattern;
-      _advance_to_wildcard(pattern);
-      unsigned succlen = (unsigned)(pattern-succ);
+      unsigned succlen = _advance_to_wildcard(pattern);
 
       while (*(comp+1) != '\0' && strncmp(succ, comp, succlen) != 0) comp++;
 
       if (strncmp(succ, comp, succlen) != 0) return false;
-      
       return _ptrncmp(pattern, comp+succlen);
     } else {
-      if (pattern[0] != comp[0]) {
-        cout << "\t\tFailed" << endl;
-        return false;
-      }
+      if (pattern[0] != comp[0]) return false;
       return _ptrncmp(pattern+1, comp+1);
     }
   }

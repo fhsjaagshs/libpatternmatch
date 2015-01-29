@@ -6,22 +6,22 @@ using namespace std;
 void test_pattern(char *ptrn, char *test) {
   LibPM::pattern p(ptrn);
   bool matches = p.matches(test);
- // pattern mixed("users.<format>.*.*");
-  cout << "Pattern: " << ptrn << endl;
-  cout << "   Test: " << test << endl;
-  cout << "Matches: " << (matches ? "yes" : "no") << endl << endl;
+  list<string> splats = p.match_splats(test);
+  cout << "  Pattern: " << ptrn << endl;
+  cout << "     Test: " << test << endl;
+  cout << "  Matches: " << (matches ? "yes" : "no") << endl;
+  cout << "Wildcards: " << splats.size() << " (";
   
-  // list<string> splats = splat.match_splats("users.json.tar");
-//
-//   for (list<string>::iterator i = splats.begin(); i != splats.end(); ++i) {
-//     cout << *i << endl;
-//   }
+  for (list<string>::iterator i = splats.begin(); i != splats.end();) {
+    cout << *i;
+    if (++i != splats.end()) cout << ", ";
+  }
+  
+  cout << ")" << endl;
 }
 
-int main() {
-  //test_pattern(":value", "this");
-  test_pattern("users.*..*", "users.json..lzma");
-  test_pattern("<resource>.<json>", "users.json");
-  test_pattern("*action_*_<resource>.<json>", "action_show_users.json");
+int main(int argc, char* argv[]) {
+  if (argc == 3) test_pattern(argv[1], argv[2]);
+  else cout << "No pattern to test" << endl;
   return 0;
 }

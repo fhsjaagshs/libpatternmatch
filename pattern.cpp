@@ -106,40 +106,20 @@ namespace LibPM {
   }
 
   bool pattern::_ptrncmp(char *pattern, char *comp) {
-    if (/*strlen(comp) == 0 &&*/ strlen(pattern) == 0) return true;
-  
-    cout << "\t" << "Call: " << pattern << endl;
+    if (strlen(pattern) == 0) return true;
   
     char *tmp = pattern;
     if (_advance_to_succ(tmp) != 0) { // if there are non-pattern characters after pattern
-      cout << "\t\tFound pattern: " << pattern << endl;
-
-      pattern+=1;
+      _advance_to_succ(pattern);
       char *succ = pattern;
       _advance_to_wildcard(pattern);
       unsigned succlen = (unsigned)(pattern-succ);
-      
-      cout << "\t\tAdvanced pattern: " << pattern << endl;
-      cout << "\t\tFound succ(" << succlen << "): " << succ << endl;
-      
-      
-      
-      char *tmpcomp = comp;
-      while (*(tmpcomp+1) != '\0' && strncmp(succ, tmpcomp, succlen) != 0) tmpcomp++;
 
-      cout << "\t\tComparing with: " << tmpcomp << endl;
+      while (*(comp+1) != '\0' && strncmp(succ, comp, succlen) != 0) comp++;
 
-      // TODO: advance comp to succ
-
-      if (strncmp(succ, tmpcomp, succlen) == 0) {
-        cout << "\t\tMatched wildcard." << endl;
-        comp = tmpcomp+succlen;
-        //comp += succlen; // advance comp
-        return _ptrncmp(pattern, comp);
-      } else {
-        cout << "\t\tComparison failed." << endl;
-        return false;
-      }
+      if (strncmp(succ, comp, succlen) != 0) return false;
+      
+      return _ptrncmp(pattern, comp+succlen);
     } else {
       if (pattern[0] != comp[0]) {
         cout << "\t\tFailed" << endl;

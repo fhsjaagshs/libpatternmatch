@@ -19,8 +19,9 @@ void test_pattern(char *ptrn, char *test) {
 }
 
 int main() {
- // test_pattern(":value", "this");
+  //test_pattern(":value", "this");
   test_pattern("users.*..*", "users.json..lzma");
-//  test_pattern("<resource>.<json>", "users.json");
+  test_pattern("<resource>.<json>", "users.json");
+  test_pattern("*action_*_<resource>.<json>", "action_show_users.json");
   return 0;
 }

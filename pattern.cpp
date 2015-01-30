@@ -159,14 +159,9 @@ namespace LibPM {
   list<unsigned> pattern::_get_splat_indeces(char *str, char *ptr) {
     if (!ptr) ptr = str;
 
-    char *tmp = ptr;
-    if (str == ptr) {
-      cout << "returning empty" << endl;
-      return list<unsigned>();
-    }
-  
     _advance_to_wildcard(ptr, '*');
-    cout << "\t(Splat IDX) Pointer: " << ptr << endl;
+
+    if (ptr[0] != '*') return list<unsigned>();
   
     list<unsigned> recursive = _get_splat_indeces(str, ptr+1);
     recursive.push_front((unsigned)(ptr-str));

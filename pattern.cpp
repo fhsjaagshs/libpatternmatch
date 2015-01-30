@@ -9,18 +9,27 @@ namespace LibPM {
   // Public
   //
   
-  bool pattern::is_dynamic() {
+  bool pattern::operator==(const string &rhs) const {
+    return matches(rhs);
+  }
+  
+  bool pattern::operator!=(const string &rhs) const {
+    return !(*this == rhs);
+  }
+  
+  bool pattern::is_dynamic() const {
     if (_wildcard_indeces.size() > 0) return true;
     if (_splat_indeces.size() > 0) return true;
     return false;
   }
 
-  bool pattern::matches(string comp) { 
+  bool pattern::matches(string comp) const { 
+    if (_pattern == comp) return true;
     if (_pattern[0] == ':') return true;
     return _ptrncmp((char *)_pattern.c_str(), (char *)comp.c_str());
   }
 
-  map<string, string> pattern::match_wildcards(string comp) {
+  map<string, string> pattern::match_wildcards(string comp) const {
     if (_pattern[0] == ':') {
       map<string, string> m;
       m[_pattern.substr(1, _pattern.length()-1)] = comp;
@@ -32,7 +41,7 @@ namespace LibPM {
     char *str = (char *)comp.c_str();
     int index_delta = 0;
   
-    for (list<unsigned>::iterator i = _wildcard_indeces.begin(); i != _wildcard_indeces.end(); ++i) {
+    for (list<unsigned>::const_iterator i = _wildcard_indeces.begin(); i != _wildcard_indeces.end(); ++i) {
       unsigned idx = *i+index_delta;
       char *tmppattern = pattern+idx;
       string name = _read_until(tmppattern, '>');
@@ -54,13 +63,13 @@ namespace LibPM {
     return m;
   }
 
-  list<string> pattern::match_splats(string comp) {
+  list<string> pattern::match_splats(string comp) const {
     list<string> splats;
     char *pattern = (char *)_pattern.c_str();
     char *str = (char *)comp.c_str();
     int index_delta = 0;
 
-    for (list<unsigned>::iterator i = _splat_indeces.begin(); i != _splat_indeces.end(); ++i) {
+    for (list<unsigned>::const_iterator i = _splat_indeces.begin(); i != _splat_indeces.end(); ++i) {
       unsigned idx = *i+index_delta;
 
       char *tmpptrn = pattern+*i; // character after the splat
@@ -92,23 +101,25 @@ namespace LibPM {
     _pattern = ptrn;
   }
   
-  unsigned pattern::_advance_to_str(char *&ptr, char *str, unsigned n) {
+  unsigned pattern::_advance_to_str(char *&ptr, char *str, unsigned n) const {
     char *start = ptr;
     while (/*ptr[n-1]*/ *ptr != '\0' && strncmp(str, ptr, n) != 0) ptr++;
     return (unsigned)(ptr-start);
   }
-
-  unsigned pattern::_advance_to_wildcard(char *&ptr, char c) {
+  
+  unsigned pattern::_advance_to_char(char *&ptr, char c) const {
     char *start = ptr;
-    if (c == '\0') {
-      while (*ptr != '*' && *ptr != '<' && *ptr != '\0') ptr++;
-    } else {
-      while (*ptr != c && *ptr != '\0') ptr++;
-    }
+    while (*ptr != c && *ptr != '\0') ptr++;
     return (unsigned)(ptr-start);
   }
 
-  unsigned pattern::_advance_to_succ(char *&ptr) {
+  unsigned pattern::_advance_to_wildcard(char *&ptr) const {
+    char *start = ptr;
+    while (*ptr != '*' && *ptr != '<' && *ptr != '\0') ptr++;
+    return (unsigned)(ptr-start);
+  }
+
+  unsigned pattern::_advance_to_succ(char *&ptr) const {
     char *start = ptr;
     if (*ptr == '<') {
       while (*ptr != '>') ptr++; ptr++;
@@ -118,7 +129,7 @@ namespace LibPM {
     return (unsigned)(ptr-start);
   }
 
-  bool pattern::_ptrncmp(char *pattern, char *comp) {
+  bool pattern::_ptrncmp(char *pattern, char *comp) const {
     if (strlen(pattern) == 0) return true;
   
     char *tmp = pattern;
@@ -136,7 +147,7 @@ namespace LibPM {
     }
   }
 
-  string pattern::_read_until(char *ptr, char c) {
+  string pattern::_read_until(char *ptr, char c) const {
     char *savedptr = ptr;
     while (*(ptr++) != c);
     unsigned len = ptr-savedptr;
@@ -147,7 +158,7 @@ namespace LibPM {
     return read_str;
   }
 
-  string pattern::_read_until_wildcard(char *ptr) {
+  string pattern::_read_until_wildcard(char *ptr) const {
     char *savedptr = ptr;
     while (*ptr != '<' && *ptr != '*') ptr++;
     unsigned len = ptr-savedptr;
@@ -158,30 +169,34 @@ namespace LibPM {
     return read_str;
   }
 
-  list<unsigned> pattern::_get_splat_indeces(char *str, char *ptr) {
-    if (!ptr) ptr = str;
-
-    _advance_to_wildcard(ptr, '*');
+  list<unsigned> pattern::_get_splat_indeces_prime(char *str, char *ptr) const {
+    _advance_to_char(ptr, '*');
     
     unsigned idx = (unsigned)(ptr-str);
     
     if (*ptr != '*') return list<unsigned>();
   
-    list<unsigned> recursive = _get_splat_indeces(str, ptr+1);
+    list<unsigned> recursive = _get_splat_indeces_prime(str, ptr+1);
     recursive.push_front(idx);
     return recursive;
   }
 
-  list<unsigned> pattern::_get_wildcard_indeces(char *str, char *ptr) {
-    if (!ptr) ptr = str;
-    if (str == ptr) return list<unsigned>();
-  
-    _advance_to_wildcard(ptr, '<');
+  list<unsigned> pattern::_get_wildcard_indeces_prime(char *str, char *ptr) const {
+    return list<unsigned>();
+    /*_advance_to_char(ptr, '<');
+    
     unsigned idx = (unsigned)(ptr-str);
-    _advance_to_succ(ptr);
+    
+    cout << "\t\tptr: " << ptr << endl;
+    
+    if (*ptr == '\0') return list<unsigned>();
+    
+   // if (*ptr != '<') return list<unsigned>();
+    
+   // if (*ptr != '<' || *ptr != '>') return list<unsigned>();
   
-    list<unsigned> recursive = _get_wildcard_indeces(str, ptr);
+    list<unsigned> recursive = _get_wildcard_indeces_prime(str, ptr);
     recursive.push_front(idx);
-    return recursive;
+    return recursive;*/
   }
 }

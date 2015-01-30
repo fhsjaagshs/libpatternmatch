@@ -25,9 +25,9 @@ void test_pattern(char *ptrn, char *test) {
     }
     
     map<string,string> wildcards = p.match_wildcards(test);
-    wildcards[string("key1")] = string("value1");
-    wildcards[string("key2")] = string("value2");
-    wildcards[string("key3")] = string("value3");
+    // wildcards[string("key1")] = string("value1");
+    // wildcards[string("key2")] = string("value2");
+    // wildcards[string("key3")] = string("value3");
     if (wildcards.size() > 0) {
       cout << endl;
       cout << "Wildcards: " << wildcards.size() << " (";

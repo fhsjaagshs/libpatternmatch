@@ -182,21 +182,14 @@ namespace LibPM {
   }
 
   list<unsigned> pattern::_get_wildcard_indeces_prime(char *str, char *ptr) const {
-    return list<unsigned>();
-    /*_advance_to_char(ptr, '<');
+    _advance_to_char(ptr, '<');
     
     unsigned idx = (unsigned)(ptr-str);
     
-    cout << "\t\tptr: " << ptr << endl;
-    
-    if (*ptr == '\0') return list<unsigned>();
-    
-   // if (*ptr != '<') return list<unsigned>();
-    
-   // if (*ptr != '<' || *ptr != '>') return list<unsigned>();
-  
-    list<unsigned> recursive = _get_wildcard_indeces_prime(str, ptr);
+    if (strlen(ptr) == 0) return list<unsigned>();
+
+    list<unsigned> recursive = _get_wildcard_indeces_prime(str, ptr+1);
     recursive.push_front(idx);
-    return recursive;*/
+    return recursive;
   }
 }

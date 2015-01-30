@@ -10,14 +10,19 @@ void test_pattern(char *ptrn, char *test) {
   cout << "  Pattern: " << ptrn << endl;
   cout << "     Test: " << test << endl;
   cout << "  Matches: " << (matches ? "yes" : "no") << endl;
-  cout << "Wildcards: " << splats.size() << " (";
   
-  for (list<string>::iterator i = splats.begin(); i != splats.end();) {
-    cout << *i;
-    if (++i != splats.end()) cout << ", ";
+  if (matches) {
+    cout << "Wildcards: " << splats.size() << " (";
+  
+    for (list<string>::iterator i = splats.begin(); i != splats.end(); i++) {
+      cout << *i;
+      if (next(i) != splats.end()) cout << ", ";
+    }
+  
+    cout << ")";
   }
   
-  cout << ")" << endl;
+  cout << endl;
 }
 
 int main(int argc, char* argv[]) {

@@ -7,7 +7,7 @@ shared: pattern.o
 	g++ -shared pattern.o -o libpatternmatch.so
 
 pattern.o: pattern.cpp
-	g++ -fPIC -g -c pattern.cpp
+	g++ -fPIC -c pattern.cpp
 
 tester.o: tester.cpp
 	g++ -c tester.cpp

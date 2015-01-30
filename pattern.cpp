@@ -59,27 +59,23 @@ namespace LibPM {
     char *str = (char *)comp.c_str();
     int index_delta = 0;
 
-    cout << "count: " << _splat_indeces.size() << endl;
-
     for (list<unsigned>::iterator i = _splat_indeces.begin(); i != _splat_indeces.end(); ++i) {
-      cout << "HERE" << endl;
       unsigned idx = *i+index_delta;
-      char *tmpptrn = pattern+idx;
-      _advance_to_succ(tmpptrn);
+
+      char *tmpptrn = pattern+*i+1; // character after the splat
       char *succ = tmpptrn;
       unsigned succlen = _advance_to_wildcard(tmpptrn);
       char *tmpstr = str+idx;
       
-      while (*(tmpstr+1) != '\0' && strncmp(succ, tmpstr, succlen) != 0) tmpstr++;
-      
+      while (tmpstr[succlen+1] != '\0' && strncmp(succ, tmpstr, succlen) != 0) tmpstr++;
       unsigned splat_len = tmpstr-(str+idx);
-
+      
       char *buf = (char *)malloc(sizeof(char)*splat_len);
       strncpy(buf, (str+idx), splat_len);
-      string value(buf);
+      string value(buf, splat_len);
       splats.push_back(value);
       free(buf);
-      index_delta += value.length();
+      index_delta += value.length()-1;
     }
     
     return splats;
@@ -98,9 +94,9 @@ namespace LibPM {
   unsigned pattern::_advance_to_wildcard(char *&ptr, char c) {
     char *start = ptr;
     if (c == '\0') {
-      while (*ptr != '*' && *ptr != '<' && *(ptr+1) != '\0') ptr++;
+      while (*ptr != '*' && *ptr != '<' && *ptr != '\0') ptr++;
     } else {
-      while (*ptr != c && *(ptr+1) != '\0') ptr++;
+      while (*ptr != c && *ptr != '\0') ptr++;
     }
     return (unsigned)(ptr-start);
   }
@@ -160,11 +156,13 @@ namespace LibPM {
     if (!ptr) ptr = str;
 
     _advance_to_wildcard(ptr, '*');
-
-    if (ptr[0] != '*') return list<unsigned>();
+    
+    unsigned idx = (unsigned)(ptr-str);
+    
+    if (*ptr != '*') return list<unsigned>();
   
     list<unsigned> recursive = _get_splat_indeces(str, ptr+1);
-    recursive.push_front((unsigned)(ptr-str));
+    recursive.push_front(idx);
     return recursive;
   }
 

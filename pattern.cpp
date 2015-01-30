@@ -2,6 +2,8 @@
 
 // TODO: Match last occurance of the 'succ' string when reading wildcards
 
+// TODO: New wildcard: & matches 1 character
+
 namespace LibPM {
   //
   // Public
@@ -38,9 +40,8 @@ namespace LibPM {
 
       char *strtemp = str;
 
-      // advance to start of last occurance of the succ string in str
-      while (strncmp(succ.c_str(), strtemp, succ.length()) != 0) strtemp++;
-  
+      _advance_to_str(strtemp,(char *)succ.c_str(),succ.length());
+
       unsigned valuelen = (unsigned)(strtemp-str);
   
       char *token = (char *)malloc(sizeof(char)*valuelen);
@@ -91,9 +92,9 @@ namespace LibPM {
     _pattern = ptrn;
   }
   
-  unsigned pattern::_advance_to_str(char *ptr, char *str, unsigned n) {
+  unsigned pattern::_advance_to_str(char *&ptr, char *str, unsigned n) {
     char *start = ptr;
-    while (ptr[n-1] != '\0' && strncmp(str, ptr, n) != 0) ptr++;
+    while (/*ptr[n-1]*/ *ptr != '\0' && strncmp(str, ptr, n) != 0) ptr++;
     return (unsigned)(ptr-start);
   }
 
@@ -121,12 +122,11 @@ namespace LibPM {
     if (strlen(pattern) == 0) return true;
   
     char *tmp = pattern;
-    if (_advance_to_succ(tmp) != 0) { // if there are non-pattern characters after pattern
+    if (_advance_to_succ(tmp) != 0) {
       pattern = tmp;
       char *succ = pattern;
-      unsigned succlen = _advance_to_wildcard(pattern);
-
-      while (comp[1] != '\0' && strncmp(succ, comp, succlen) != 0) comp++;
+      unsigned succlen = _advance_to_wildcard(pattern);      
+      _advance_to_str(comp, succ, succlen);
 
       if (strncmp(succ, comp, succlen) != 0) return false;
       return _ptrncmp(pattern, comp+succlen);

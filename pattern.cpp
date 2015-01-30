@@ -62,14 +62,14 @@ namespace LibPM {
     for (list<unsigned>::iterator i = _splat_indeces.begin(); i != _splat_indeces.end(); ++i) {
       unsigned idx = *i+index_delta;
 
-      char *tmpptrn = pattern+*i+1; // character after the splat
+      char *tmpptrn = pattern+*i; // character after the splat
+      _advance_to_succ(tmpptrn);
       char *succ = tmpptrn;
       unsigned succlen = _advance_to_wildcard(tmpptrn);
       char *tmpstr = str+idx;
       
-      while (tmpstr[succlen+1] != '\0' && strncmp(succ, tmpstr, succlen) != 0) tmpstr++;
-      unsigned splat_len = tmpstr-(str+idx);
-      
+      unsigned splat_len = succlen > 0 ? _advance_to_str(tmpstr, succ, succlen) : strlen(tmpstr);
+
       char *buf = (char *)malloc(sizeof(char)*splat_len);
       strncpy(buf, (str+idx), splat_len);
       string value(buf, splat_len);
@@ -90,6 +90,12 @@ namespace LibPM {
     _wildcard_indeces = _get_wildcard_indeces((char *)ptrn.c_str());
     _pattern = ptrn;
   }
+  
+  unsigned pattern::_advance_to_str(char *ptr, char *str, unsigned n) {
+    char *start = ptr;
+    while (ptr[n-1] != '\0' && strncmp(str, ptr, n) != 0) ptr++;
+    return (unsigned)(ptr-start);
+  }
 
   unsigned pattern::_advance_to_wildcard(char *&ptr, char c) {
     char *start = ptr;
@@ -103,9 +109,9 @@ namespace LibPM {
 
   unsigned pattern::_advance_to_succ(char *&ptr) {
     char *start = ptr;
-    if (ptr[0] == '<') {
+    if (*ptr == '<') {
       while (*ptr != '>') ptr++; ptr++;
-    } else if (ptr[0] == '*') {
+    } else if (*ptr == '*') {
       ptr++;
     }
     return (unsigned)(ptr-start);
@@ -120,7 +126,7 @@ namespace LibPM {
       char *succ = pattern;
       unsigned succlen = _advance_to_wildcard(pattern);
 
-      while (*(comp+1) != '\0' && strncmp(succ, comp, succlen) != 0) comp++;
+      while (comp[1] != '\0' && strncmp(succ, comp, succlen) != 0) comp++;
 
       if (strncmp(succ, comp, succlen) != 0) return false;
       return _ptrncmp(pattern, comp+succlen);

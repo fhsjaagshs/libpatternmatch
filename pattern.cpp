@@ -1,15 +1,9 @@
 #include "pattern.h"
-#include <cmath>
 
 // TODO: Match last occurance of the 'succ' string when reading wildcards
-
 // TODO: New wildcard: & matches 1 character
 
 namespace LibPM {
-  //
-  // Public
-  //
-  
   bool pattern::operator==(const string &rhs) const {
     return matches(rhs);
   }
@@ -30,7 +24,6 @@ namespace LibPM {
     return _ptrncmp((char *)_pattern.c_str(), (char *)comp.c_str());
   }
 
-  // TODO:: Fix me
   map<string, string> pattern::match_wildcards(string comp) const {
     if (_pattern[0] == ':') {
       map<string, string> m;
@@ -41,17 +34,16 @@ namespace LibPM {
     map<string, string> m;
     char *pattern = (char *)_pattern.c_str();
     char *str = (char *)comp.c_str();
-    int index_delta = 0;
 
     for (list<unsigned>::const_iterator i = _wildcard_indeces.begin(); i != _wildcard_indeces.end(); ++i) {
       char *ptr = pattern+*i;
       string name(ptr+1,_advance_to_succ(ptr)-2);
 
-      char *vptr = str+*i+index_delta;
+      char *vptr = str+*i;
       string value(vptr,_advance_to_str(vptr, ptr, _advance_to_char(ptr,'<')));
       
       m[name] = value;
-      index_delta += value.length()-(name.length()+2);
+      str += value.length()-(name.length()+2);
     }
   
     return m;
@@ -61,33 +53,19 @@ namespace LibPM {
     list<string> splats;
     char *pattern = (char *)_pattern.c_str();
     char *str = (char *)comp.c_str();
-    int index_delta = 0;
-
+    
     for (list<unsigned>::const_iterator i = _splat_indeces.begin(); i != _splat_indeces.end(); ++i) {
-      unsigned idx = *i+index_delta;
+      char *succ = pattern+*i; // character after the splat
+      _advance_to_succ(succ);
 
-      char *tmpptrn = pattern+*i; // character after the splat
-      _advance_to_succ(tmpptrn);
-      char *succ = tmpptrn;
-      unsigned succlen = _advance_to_wildcard(tmpptrn);
-      char *tmpstr = str+idx;
-      
-      unsigned splat_len = succlen > 0 ? _advance_to_str(tmpstr, succ, succlen) : strlen(tmpstr);
-
-      char *buf = (char *)malloc(sizeof(char)*splat_len);
-      strncpy(buf, (str+idx), splat_len);
-      string value(buf, splat_len);
+      char *vptr = str+*i; // the analogous position in str
+      string value(vptr, _advance_to_str(vptr, succ, _advance_to_wildcard(succ)));
       splats.push_back(value);
-      free(buf);
-      index_delta += value.length()-1;
+      str += value.length()-1;
     }
     
     return splats;
   }
-
-  //
-  // Private
-  //
 
   void pattern::create(string ptrn) {
     _splat_indeces = _get_splat_indeces((char *)ptrn.c_str());
@@ -141,49 +119,21 @@ namespace LibPM {
     }
   }
 
-  string pattern::_read_until(char *ptr, char c) const {
-    char *savedptr = ptr;
-    while (*(ptr++) != c);
-    unsigned len = ptr-savedptr;
-    char *token = (char *)malloc(sizeof(char)*len);
-    strncpy(token,savedptr,len);
-    string read_str(token);
-    free(token);
-    return read_str;
-  }
-
-  string pattern::_read_until_wildcard(char *ptr) const {
-    char *savedptr = ptr;
-    while (*ptr != '<' && *ptr != '*') ptr++;
-    unsigned len = ptr-savedptr;
-    char *token = (char *)malloc(sizeof(char)*len);
-    strncpy(token,savedptr,len);
-    string read_str(token);
-    free(token);
-    return read_str;
-  }
-
   list<unsigned> pattern::_get_splat_indeces_prime(char *str, char *ptr) const {
     _advance_to_char(ptr, '*');
-    
-    unsigned idx = (unsigned)(ptr-str);
-    
     if (*ptr != '*') return list<unsigned>();
   
     list<unsigned> recursive = _get_splat_indeces_prime(str, ptr+1);
-    recursive.push_front(idx);
+    recursive.push_front(ptr-str);
     return recursive;
   }
 
   list<unsigned> pattern::_get_wildcard_indeces_prime(char *str, char *ptr) const {
     _advance_to_char(ptr, '<');
-    
-    unsigned idx = (unsigned)(ptr-str);
-    
     if (*ptr == '\0') return list<unsigned>();
 
     list<unsigned> recursive = _get_wildcard_indeces_prime(str, ptr+1);
-    recursive.push_front(idx);
+    recursive.push_front(ptr-str);
     return recursive;
   }
 }

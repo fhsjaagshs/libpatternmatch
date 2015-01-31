@@ -1,4 +1,5 @@
 #include "pattern.h"
+#include <cmath>
 
 // TODO: Match last occurance of the 'succ' string when reading wildcards
 
@@ -29,6 +30,7 @@ namespace LibPM {
     return _ptrncmp((char *)_pattern.c_str(), (char *)comp.c_str());
   }
 
+  // TODO:: Fix me
   map<string, string> pattern::match_wildcards(string comp) const {
     if (_pattern[0] == ':') {
       map<string, string> m;
@@ -40,24 +42,16 @@ namespace LibPM {
     char *pattern = (char *)_pattern.c_str();
     char *str = (char *)comp.c_str();
     int index_delta = 0;
-  
+
     for (list<unsigned>::const_iterator i = _wildcard_indeces.begin(); i != _wildcard_indeces.end(); ++i) {
-      unsigned idx = *i+index_delta;
-      char *tmppattern = pattern+idx;
-      string name = _read_until(tmppattern, '>');
-      string succ = _read_until_wildcard(tmppattern);
+      char *ptr = pattern+*i;
+      string name(ptr+1,_advance_to_succ(ptr)-2);
 
-      char *strtemp = str;
-
-      _advance_to_str(strtemp,(char *)succ.c_str(),succ.length());
-
-      unsigned valuelen = (unsigned)(strtemp-str);
-  
-      char *token = (char *)malloc(sizeof(char)*valuelen);
-      strncpy(token,str,valuelen);
-      string value(token);
-      free(token);
+      char *vptr = str+*i+index_delta;
+      string value(vptr,_advance_to_str(vptr, ptr, _advance_to_char(ptr,'<')));
+      
       m[name] = value;
+      index_delta += value.length()-(name.length()+2);
     }
   
     return m;
@@ -103,7 +97,7 @@ namespace LibPM {
   
   unsigned pattern::_advance_to_str(char *&ptr, char *str, unsigned n) const {
     char *start = ptr;
-    while (/*ptr[n-1]*/ *ptr != '\0' && strncmp(str, ptr, n) != 0) ptr++;
+    while (*ptr != '\0' && (strncmp(ptr, str, n) != 0  || *str == '\0')) ptr++;
     return (unsigned)(ptr-start);
   }
   
@@ -186,7 +180,7 @@ namespace LibPM {
     
     unsigned idx = (unsigned)(ptr-str);
     
-    if (strlen(ptr) == 0) return list<unsigned>();
+    if (*ptr == '\0') return list<unsigned>();
 
     list<unsigned> recursive = _get_wildcard_indeces_prime(str, ptr+1);
     recursive.push_front(idx);

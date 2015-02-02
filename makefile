@@ -16,7 +16,7 @@ tester: pattern.o tester.o
 	g++ pattern.o tester.o -o tester
 
 test: tester
-	./tester
+	make tester > /dev/null; ./tester '$(PATTERN)$(P)' '$(STR)$(S)'
 
 clean:
 	rm -rf *.o *.so *.dylib tester

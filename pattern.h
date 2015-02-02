@@ -23,10 +23,11 @@ namespace LibPM {
     // check if a string matches the this pattern
     bool matches(string comp) const;
     
-    // extract the wildcards in comp into a map
-    map<string, string> match_wildcards(string comp) const;
+    // extracts splats and wildcards from the string
+    // while checking if the string is a match.
+   // bool match(string cppstr, list<string> &splats, map<string,string> &wildcards);
     
-    // extract the splats in comp into a list
+    map<string, string> match_wildcards(string comp) const;
     list<string> match_splats(string comp) const;
   
   private:
@@ -35,6 +36,9 @@ namespace LibPM {
     list<unsigned> _wildcard_indeces;
   
     void create(string ptrn);
+    
+    // recursive implementatino of match_splats()
+    list<string> _match_splats(char *str, char *pattern, list<string> &splats) const;
     
     // advance ptr to the next occurance of str
     unsigned _advance_to_str(char *&ptr, char *str, unsigned len) const;
@@ -57,8 +61,5 @@ namespace LibPM {
     inline list<unsigned> _get_splat_indeces(char *str) const { return _get_splat_indeces_prime(str,str); }
     list<unsigned> _get_wildcard_indeces_prime(char *str, char *ptr) const;
     inline list<unsigned> _get_wildcard_indeces(char *str) const { return _get_wildcard_indeces_prime(str,str); }
-    
-    string _read_until_wildcard(char *ptr) const;
-    string _read_until(char *ptr, char c) const;
   };
 }

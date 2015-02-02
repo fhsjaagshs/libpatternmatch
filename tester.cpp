@@ -5,13 +5,16 @@ using namespace std;
 
 void test_pattern(char *ptrn, char *test) {
   LibPM::pattern p(ptrn);
+  list<string> splats;
+  map<string,string> wildcards;
   bool matches = p.matches(test);
+  //bool matches = p.match(test,splats,wildcards);
   cout << "  Pattern: " << ptrn << endl;
   cout << "     Test: " << test << endl;
   cout << "  Matches: " << (matches ? "yes" : "no");
   
   if (matches) {
-    list<string> splats = p.match_splats(test);
+    splats = p.match_splats(test);
     if (splats.size() > 0) {
       cout << endl;
       cout << "   Splats: " << splats.size() << " (";
@@ -24,10 +27,8 @@ void test_pattern(char *ptrn, char *test) {
       cout << ")";
     }
     
-    map<string,string> wildcards = p.match_wildcards(test);
-    // wildcards[string("key1")] = string("value1");
-    // wildcards[string("key2")] = string("value2");
-    // wildcards[string("key3")] = string("value3");
+    wildcards = p.match_wildcards(test);
+    
     if (wildcards.size() > 0) {
       cout << endl;
       cout << "Wildcards: " << wildcards.size() << " (";

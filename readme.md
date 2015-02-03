@@ -15,8 +15,8 @@ Usage:
     	
     	// you can also use pattern.matches(str)
     	if (pattern == str) { 
-    	  list<string> splats = p.match_splats(str); // contains "users"
-    	  map<string,string> wildcards = p.match_wildcards(str); // contains format:json and compression:tar.gz
+    	  list<string> splats = p.extract_splats(str); // contains "users"
+    	  map<string,string> wildcards = p.extract_mappings(str); // contains format:json and compression:tar.gz
     	}
     }
     
@@ -43,10 +43,11 @@ or
 Makefile Targets:
 -
 
-
+Just look in the makefile.
 
 
 TODO:
 -
 
+- Make extensible: Subclass to add more wildcards
 - Adopt makefile conventions

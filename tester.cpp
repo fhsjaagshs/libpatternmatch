@@ -11,7 +11,7 @@ void test_pattern(char *ptrn, char *test) {
   cout << "  Matches: " << (matches ? "yes" : "no");
   
   if (matches) {
-    list<string> splats = p.match_splats(test);
+    list<string> splats = p.extract_splats(test);
     if (splats.size() > 0) {
       cout << endl;
       cout << "   Splats: " << splats.size() << " (";
@@ -24,7 +24,7 @@ void test_pattern(char *ptrn, char *test) {
       cout << ")";
     }
     
-    map<string, string> wildcards = p.match_wildcards(test);
+    map<string, string> wildcards = p.extract_mappings(test);
     
     if (wildcards.size() > 0) {
       cout << endl;

@@ -81,37 +81,29 @@ namespace LibPM {
   // asdfs* // 5
   
   list<string> pattern::match_splats(string cppstr) const {
-    cout << endl;
-    
     list<string> splats;
     char *pattern = (char *)_pattern.c_str();
     char *str = (char *)cppstr.c_str();
     int index_delta = 0;
 
     for (auto i = _index.begin(); i != _index.end(); i++) {
-      cout << "-----" << endl;
-      
       unsigned idx = i->first;
       string token = i->second;
-      
-      cout << "token: '" << token << "'" << endl;
-      cout << "idx: " << idx << endl;
       
       char *succ = pattern+idx+token.length();
       char *vptr = str+idx+index_delta;
       char *tmpv = vptr;
-      unsigned succlen = (i == _index.end()) ? 0 : next(i)->second.length();
-      
+      unsigned succlen = (i == _index.end()) ? 0 : next(i)->first-(idx+token.length());
       unsigned vlen = _advance_to_str(tmpv, succ, succlen);
       
+      index_delta += vlen;
+      
       if (token[0] == '*') {
-        
-        cout << "vlen: " << vlen << endl;
         splats.push_back(string(vptr, vlen));
         
-        index_delta += vlen-1;
+        index_delta -= 1;
       } else {
-        index_delta += vlen-token.length();
+        index_delta -= token.length();
       }
     }
     return splats;

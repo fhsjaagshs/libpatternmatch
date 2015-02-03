@@ -13,14 +13,12 @@ namespace LibPM {
   }
   
   bool pattern::is_dynamic() const {
-    if (_wildcard_indeces.size() > 0) return true;
-    if (_splat_indeces.size() > 0) return true;
-    return false;
+    return (_index.size() > 0);
   }
 
   bool pattern::matches(string comp) const {
-    if (_pattern == comp) return true;
     if (_pattern[0] == ':') return true;
+    if (_pattern == comp) return true;
     return _ptrncmp((char *)_pattern.c_str(), (char *)comp.c_str());
   }
   
@@ -49,71 +47,112 @@ namespace LibPM {
   //   }
   //
   // }
+  
+   map<string, string> pattern::match_wildcards(string comp) const  {
+     return map<string, string>();
+   }
 
-  map<string, string> pattern::match_wildcards(string comp) const {
-    if (_pattern[0] == ':') {
-      map<string, string> m;
-      m[_pattern.substr(1, _pattern.length()-1)] = comp;
-      return m;
-    }
-
-    map<string, string> m;
-    char *pattern = (char *)_pattern.c_str();
-    char *str = (char *)comp.c_str();
-
-    for (list<unsigned>::const_iterator i = _wildcard_indeces.begin(); i != _wildcard_indeces.end(); ++i) {
-      char *ptr = pattern+*i;
-      string name(ptr+1,_advance_to_succ(ptr)-2);
-
-      char *vptr = str+*i;
-      string value(vptr,_advance_to_str(vptr, ptr, _advance_to_char(ptr,'<')));
-
-      m[name] = value;
-      str += value.length()-(name.length()+2);
-    }
-
-    return m;
-  }
+  // map<string, string> pattern::match_wildcards(string comp) const {
+  //   if (_pattern[0] == ':') {
+  //     map<string, string> m;
+  //     m[_pattern.substr(1, _pattern.length()-1)] = comp;
+  //     return m;
+  //   }
+  //
+  //   map<string, string> m;
+  //   char *pattern = (char *)_pattern.c_str();
+  //   char *str = (char *)comp.c_str();
+  //
+  //   for (list<unsigned>::const_iterator i = _wildcard_indeces.begin(); i != _wildcard_indeces.end(); ++i) {
+  //     char *ptr = pattern+*i;
+  //     string name(ptr+1,_advance_to_succ(ptr)-2);
+  //
+  //     char *vptr = str+*i;
+  //     string value(vptr,_advance_to_str(vptr, ptr, _advance_to_char(ptr,'<')));
+  //
+  //     m[name] = value;
+  //     str += value.length()-(name.length()+2);
+  //   }
+  //
+  //   return m;
+  // }
   
   // asdf<sdfi>s* // 11
   // asdfs* // 5
   
-  list<string> pattern::match_splats(string comp) const {
+  list<string> pattern::match_splats(string cppstr) const {
+    cout << endl;
+    
     list<string> splats;
     char *pattern = (char *)_pattern.c_str();
-    char *str = (char *)comp.c_str();
+    char *str = (char *)cppstr.c_str();
     int index_delta = 0;
 
-    cout << endl;
-
-    for (list<unsigned>::const_iterator i = _splat_indeces.begin(); i != _splat_indeces.end(); ++i) {
-      cout << "----------" << endl;
-
-      char *succ = pattern+*i+1; // character after the splat
-      char *vptr = str+*i+index_delta; // the analogous position in str
-
-      cout << "succ: " << succ << endl;
-      char *tmpsucc = succ;
-      unsigned succlen = _advance_to_wildcard(tmpsucc);
+    for (auto i = _index.begin(); i != _index.end(); i++) {
+      cout << "-----" << endl;
       
-      cout << "tmpsucc: " << tmpsucc << endl; 
-      cout << "succlen: " << succlen << endl;
+      unsigned idx = i->first;
+      string token = i->second;
       
-      cout << "vptr: " << vptr << endl;
+      cout << "token: '" << token << "'" << endl;
+      cout << "idx: " << idx << endl;
+      
+      char *succ = pattern+idx+token.length();
+      char *vptr = str+idx+index_delta;
       char *tmpv = vptr;
+      unsigned succlen = (i == _index.end()) ? 0 : next(i)->second.length();
+      
       unsigned vlen = _advance_to_str(tmpv, succ, succlen);
-      cout << "vlen: " << vlen << endl;
-      splats.push_back(string(vptr, vlen));
       
-      if (*tmpsucc != '*' && *tmpsucc != '\0') {
-        index_delta -= _advance_to_succ(tmpsucc); // account for non-splat wildcards
+      if (token[0] == '*') {
+        
+        cout << "vlen: " << vlen << endl;
+        splats.push_back(string(vptr, vlen));
+        
+        index_delta += vlen-1;
+      } else {
+        index_delta += vlen-token.length();
       }
-      
-      index_delta += (int)vlen-1;
     }
-
     return splats;
   }
+  
+  // list<string> pattern::match_splats(string comp) const {
+//     list<string> splats;
+//     char *pattern = (char *)_pattern.c_str();
+//     char *str = (char *)comp.c_str();
+//     int index_delta = 0;
+//
+//     cout << endl;
+//
+//     for (list<unsigned>::const_iterator i = _splat_indeces.begin(); i != _splat_indeces.end(); ++i) {
+//       cout << "----------" << endl;
+//
+//       char *succ = pattern+*i+1; // character after the splat
+//       char *vptr = str+*i+index_delta; // the analogous position in str
+//
+//       cout << "succ: " << succ << endl;
+//       char *tmpsucc = succ;
+//       unsigned succlen = _advance_to_wildcard(tmpsucc);
+//
+//       cout << "tmpsucc: " << tmpsucc << endl;
+//       cout << "succlen: " << succlen << endl;
+//
+//       cout << "vptr: " << vptr << endl;
+//       char *tmpv = vptr;
+//       unsigned vlen = _advance_to_str(tmpv, succ, succlen);
+//       cout << "vlen: " << vlen << endl;
+//       splats.push_back(string(vptr, vlen));
+//
+//       if (*tmpsucc != '*' && *tmpsucc != '\0') {
+//         index_delta -= _advance_to_succ(tmpsucc); // account for non-splat wildcards
+//       }
+//
+//       index_delta += (int)vlen-1;
+//     }
+//
+//     return splats;
+//   }
   
   // list<string> pattern::_match_splats(char *str, char *pattern, list<string> &splats) const {
   //   cout << "----------" << endl;
@@ -151,14 +190,17 @@ namespace LibPM {
   // }
 
   void pattern::create(string ptrn) {
-    _splat_indeces = _get_splat_indeces((char *)ptrn.c_str());
-    _wildcard_indeces = _get_wildcard_indeces((char *)ptrn.c_str());
     _pattern = ptrn;
+    char *cptrn = (char *)_pattern.c_str();
+    _index = _gen_indeces(cptrn,cptrn);
+    // _splat_indeces = _get_splat_indeces((char *)ptrn.c_str());
+    // _wildcard_indeces = _get_wildcard_indeces((char *)ptrn.c_str());
+    
   }
   
   unsigned pattern::_advance_to_str(char *&ptr, char *str, unsigned n) const {
     char *start = ptr;
-    while (*ptr != '\0' && (strncmp(ptr, str, n) != 0 || *str == '\0')) ptr++;
+    while (*ptr != '\0' && (*str == '\0' || strncmp(ptr, str, n) != 0)) ptr++;
     return (unsigned)(ptr-start);
   }
   
@@ -184,6 +226,7 @@ namespace LibPM {
     return (unsigned)(ptr-start);
   }
 
+  // todo: implement using cached indeces
   bool pattern::_ptrncmp(char *pattern, char *comp) const {
     if (strlen(pattern) == 0) return true;
   
@@ -201,22 +244,33 @@ namespace LibPM {
       return _ptrncmp(pattern+1, comp+1);
     }
   }
-
-  list<unsigned> pattern::_get_splat_indeces_prime(char *str, char *ptr) const {
-    _advance_to_char(ptr, '*');
-    if (*ptr != '*') return list<unsigned>();
   
-    list<unsigned> recursive = _get_splat_indeces_prime(str, ptr+1);
-    recursive.push_front(ptr-str);
+  map <unsigned, string> pattern::_gen_indeces(char *str, char *ptr) const {
+    _advance_to_wildcard(ptr);
+    if (*ptr == '\0') return map <unsigned, string>();
+    unsigned idx = ptr-str;
+    unsigned token_len = _advance_to_succ(ptr);
+    
+    map <unsigned, string> recursive = _gen_indeces(str, ptr);
+    recursive[idx] = string(str+idx,token_len);
     return recursive;
   }
-
-  list<unsigned> pattern::_get_wildcard_indeces_prime(char *str, char *ptr) const {
-    _advance_to_char(ptr, '<');
-    if (*ptr == '\0') return list<unsigned>();
-
-    list<unsigned> recursive = _get_wildcard_indeces_prime(str, ptr+1);
-    recursive.push_front(ptr-str);
-    return recursive;
-  }
+  //
+  // list<unsigned> pattern::_get_splat_indeces_prime(char *str, char *ptr) const {
+  //   _advance_to_char(ptr, '*');
+  //   if (*ptr != '*') return list<unsigned>();
+  //
+  //   list<unsigned> recursive = _get_splat_indeces_prime(str, ptr+1);
+  //   recursive.push_front(ptr-str);
+  //   return recursive;
+  // }
+  //
+  // list<unsigned> pattern::_get_wildcard_indeces_prime(char *str, char *ptr) const {
+  //   _advance_to_char(ptr, '<');
+  //   if (*ptr == '\0') return list<unsigned>();
+  //
+  //   list<unsigned> recursive = _get_wildcard_indeces_prime(str, ptr+1);
+  //   recursive.push_front(ptr-str);
+  //   return recursive;
+  // }
 }

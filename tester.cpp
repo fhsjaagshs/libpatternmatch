@@ -5,8 +5,6 @@ using namespace std;
 
 void test_pattern(char *ptrn, char *test) {
   LibPM::pattern p(ptrn);
-  list<string> splats;
-  map<string,string> wildcards;
   bool matches = p.matches(test);
   //bool matches = p.match(test,splats,wildcards);
   cout << "  Pattern: " << ptrn << endl;
@@ -14,7 +12,7 @@ void test_pattern(char *ptrn, char *test) {
   cout << "  Matches: " << (matches ? "yes" : "no");
   
   if (matches) {
-    splats = p.match_splats(test);
+    list<string> splats = p.match_splats(test);
     if (splats.size() > 0) {
       cout << endl;
       cout << "   Splats: " << splats.size() << " (";
@@ -27,7 +25,7 @@ void test_pattern(char *ptrn, char *test) {
       cout << ")";
     }
     
-    wildcards = p.match_wildcards(test);
+    map<string, string> wildcards = p.match_wildcards(test);
     
     if (wildcards.size() > 0) {
       cout << endl;

@@ -28,12 +28,14 @@ namespace LibPM {
    // bool match(string cppstr, list<string> &splats, map<string,string> &wildcards);
     
     map<string, string> match_wildcards(string comp) const;
-    list<string> match_splats(string comp) const;
+    list<string> match_splats(string cppstr) const;
   
   private:
     string _pattern;
-    list<unsigned> _splat_indeces;
-    list<unsigned> _wildcard_indeces;
+    map<unsigned, string> _index;
+    
+    // list<unsigned> _splat_indeces;
+    // list<unsigned> _wildcard_indeces;
   
     void create(string ptrn);
     
@@ -54,6 +56,8 @@ namespace LibPM {
   
     // compares a string to a pattern
     bool _ptrncmp(char *pattern, char *comp) const;
+    
+    map <unsigned, string> _gen_indeces(char *str, char *ptr) const;
   
     list<string> _get_splats(char *pattern, char *comp) const;
     map<string, string> _get_wildcards(char *pattern, char *comp) const;

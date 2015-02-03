@@ -48,8 +48,32 @@ namespace LibPM {
   //
   // }
   
-   map<string, string> pattern::match_wildcards(string comp) const  {
-     return map<string, string>();
+   map<string, string> pattern::match_wildcards(string cppstr) const  {
+     map<string,string> wildcards;
+     char *pattern = (char *)_pattern.c_str();
+     char *str = (char *)cppstr.c_str();
+     int index_delta = 0;
+
+     for (auto i = _index.begin(); i != _index.end(); i++) {
+       unsigned idx = i->first;
+       string token = i->second;
+      
+       char *succ = pattern+idx+token.length();
+       char *vptr = str+idx+index_delta;
+       char *tmpv = vptr;
+       unsigned succlen = (i == _index.end()) ? 0 : next(i)->first-(idx+token.length());
+       unsigned vlen = _advance_to_str(tmpv, succ, succlen);
+      
+       index_delta += vlen;
+      
+       if (token[0] == '<' && token[token.length()-1] == '>') {
+         wildcards[token.substr(1, token.length()-2)] = string(vptr, vlen);
+         index_delta -= 1;
+       } else {
+         index_delta -= token.length();
+       }
+     }
+     return wildcards;
    }
 
   // map<string, string> pattern::match_wildcards(string comp) const {
@@ -77,9 +101,6 @@ namespace LibPM {
   //   return m;
   // }
   
-  // asdf<sdfi>s* // 11
-  // asdfs* // 5
-  
   list<string> pattern::match_splats(string cppstr) const {
     list<string> splats;
     char *pattern = (char *)_pattern.c_str();
@@ -100,7 +121,6 @@ namespace LibPM {
       
       if (token[0] == '*') {
         splats.push_back(string(vptr, vlen));
-        
         index_delta -= 1;
       } else {
         index_delta -= token.length();
@@ -108,86 +128,11 @@ namespace LibPM {
     }
     return splats;
   }
-  
-  // list<string> pattern::match_splats(string comp) const {
-//     list<string> splats;
-//     char *pattern = (char *)_pattern.c_str();
-//     char *str = (char *)comp.c_str();
-//     int index_delta = 0;
-//
-//     cout << endl;
-//
-//     for (list<unsigned>::const_iterator i = _splat_indeces.begin(); i != _splat_indeces.end(); ++i) {
-//       cout << "----------" << endl;
-//
-//       char *succ = pattern+*i+1; // character after the splat
-//       char *vptr = str+*i+index_delta; // the analogous position in str
-//
-//       cout << "succ: " << succ << endl;
-//       char *tmpsucc = succ;
-//       unsigned succlen = _advance_to_wildcard(tmpsucc);
-//
-//       cout << "tmpsucc: " << tmpsucc << endl;
-//       cout << "succlen: " << succlen << endl;
-//
-//       cout << "vptr: " << vptr << endl;
-//       char *tmpv = vptr;
-//       unsigned vlen = _advance_to_str(tmpv, succ, succlen);
-//       cout << "vlen: " << vlen << endl;
-//       splats.push_back(string(vptr, vlen));
-//
-//       if (*tmpsucc != '*' && *tmpsucc != '\0') {
-//         index_delta -= _advance_to_succ(tmpsucc); // account for non-splat wildcards
-//       }
-//
-//       index_delta += (int)vlen-1;
-//     }
-//
-//     return splats;
-//   }
-  
-  // list<string> pattern::_match_splats(char *str, char *pattern, list<string> &splats) const {
-  //   cout << "----------" << endl;
-  //   while (*pattern != '\0' && *pattern != '*') {
-  //     if (*pattern == '<') while (*pattern != '>') pattern++;
-  //     pattern++;
-  //     str++;
-  //   }
-  //
-  //   if (strlen(pattern) == 0) return splats;
-  //
-  //   cout << "pattern: " << pattern << endl;
-  //   cout << "str: " << str << endl;
-  //
-  //   if (*pattern == '*') pattern++;
-  //
-  //
-  //   char *tmp = pattern;
-  //   char *tmpstr = str;
-  //
-  //   unsigned n = _advance_to_wildcard(tmp);
-  //   unsigned vlen = _advance_to_str(tmpstr, pattern, n);
-  //   cout << "succlen: " << n << endl;
-  //   cout << "vlen: " << vlen << endl;
-  //
-  //   string value(tmpstr,vlen);
-  //
-  //   str += value.length();
-  //
-  //   cout << "pattern_after: " << pattern << endl;
-  //   cout << "str_after: " << str << endl;
-  //
-  //   splats.push_back(value);
-  //   return _match_splats(str,pattern,splats);
-  // }
 
   void pattern::create(string ptrn) {
     _pattern = ptrn;
     char *cptrn = (char *)_pattern.c_str();
     _index = _gen_indeces(cptrn,cptrn);
-    // _splat_indeces = _get_splat_indeces((char *)ptrn.c_str());
-    // _wildcard_indeces = _get_wildcard_indeces((char *)ptrn.c_str());
-    
   }
   
   unsigned pattern::_advance_to_str(char *&ptr, char *str, unsigned n) const {

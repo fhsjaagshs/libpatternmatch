@@ -1,10 +1,13 @@
-all: dylib shared
+all: dylib shared static
 
 dylib: pattern.o
-	g++ -dynamiclib -current_version 1.0 pattern.o -o libpatternmatch.dylib
+	g++ -dynamiclib pattern.o -o libpatternmatch.dylib
 
 shared: pattern.o
 	g++ -shared pattern.o -o libpatternmatch.so
+
+static:
+	ar -cvq libpatternmatch.a pattern.o
 
 pattern.o: pattern.cpp
 	g++ -fPIC -std=c++11 -c pattern.cpp
@@ -16,7 +19,7 @@ tester: pattern.o tester.o
 	g++ pattern.o tester.o -o tester
 
 test: tester
-	make tester > /dev/null; ./tester '$(PATTERN)$(P)' '$(STR)$(S)'
+	make tester; ./tester '$(PATTERN)$(P)' '$(STR)$(S)'
 
 clean:
-	rm -rf *.o *.so *.dylib tester
+	rm -rf *.o *.so *.dylib *.a tester

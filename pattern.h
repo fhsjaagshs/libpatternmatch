@@ -6,7 +6,7 @@
 #include <list>
 #include <map>
 
-namespace LibPM {
+namespace lpm {
   using namespace std;
   
   class pattern {
@@ -15,6 +15,7 @@ namespace LibPM {
     pattern(string ptrn) { create(ptrn); }
     
     bool operator==(const string &rhs) const;
+    bool operator==(const pattern &rhs) const;
     bool operator!=(const string &rhs) const;
   
     // returns true if there are any wilcards/splats/etc in this

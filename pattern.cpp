@@ -3,9 +3,9 @@
 // TODO: Match last occurance of the 'succ' string when reading wildcards
 // TODO: New wildcard: & matches 1 character
 
-namespace LibPM {
+namespace lpm {
   bool pattern::operator==(const string &rhs) const { return matches(rhs); }
-  
+  bool pattern::operator==(const pattern &rhs) const { return rhs._pattern == _pattern; }
   bool pattern::operator!=(const string &rhs) const { return !(*this == rhs); }
   
   bool pattern::is_dynamic() const { return (_index.size() > 0); }
@@ -77,13 +77,9 @@ namespace LibPM {
        string value(vptr, _advance_to_str(vptr, succ, succlen));
       
        index_delta += value.length();
+       index_delta -= token.length();
         
-       if (token[0] == '*') {
-         splats.push_back(value);
-         index_delta -= 1;
-       } else {
-         index_delta -= token.length();
-       }
+       if (token[0] == '*') splats.push_back(value);
      }
      return splats;
    }
@@ -107,6 +103,7 @@ namespace LibPM {
      if (*ptr == '\0') return map <unsigned, string>();
      unsigned idx = ptr-str;
      
+     // advance to characters after the pattern
      char *start = ptr;
      switch (*ptr) {
        case '<': while (*ptr != '>') ptr++; ptr++; break;

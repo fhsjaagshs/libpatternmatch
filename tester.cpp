@@ -4,9 +4,8 @@
 using namespace std;
 
 void test_pattern(char *ptrn, char *test) {
-  LibPM::pattern p(ptrn);
+  lpm::pattern p(ptrn);
   bool matches = p.matches(test);
-  //bool matches = p.match(test,splats,wildcards);
   cout << "  Pattern: " << ptrn << endl;
   cout << "     Test: " << test << endl;
   cout << "  Matches: " << (matches ? "yes" : "no");
